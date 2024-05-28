@@ -24,7 +24,8 @@ remesh(
     int vertex_count,
     int rosy = 4, int posy = 4, Float scale = -1.0, int face_count = -1,
     Float creaseAngle = 0.0,
-    bool align_to_boundaries = false, int smooth_iter = 0, int knn_points = 1000)
+    bool align_to_boundaries = false, bool extrinsic = true,
+    int smooth_iter = 0, int knn_points = 1000, bool deterministic = false)
 {
     MatrixXu F;
     F.resize(faces.shape(1), faces.shape(0));
@@ -55,13 +56,13 @@ remesh(
     bool pointcloud = F.size() == 0;
 
     Timer<> timer;
-    MeshStats stats = compute_mesh_stats(F, V, false);
+    MeshStats stats = compute_mesh_stats(F, V, deterministic);
 
     if (pointcloud)
     {
         bvh = new BVH(&F, &V, &N, stats.mAABB);
         bvh->build();
-        adj = generate_adjacency_matrix_pointcloud(V, N, bvh, stats, knn_points, false);
+        adj = generate_adjacency_matrix_pointcloud(V, N, bvh, stats, knn_points, deterministic);
         A.resize(V.cols());
         A.setConstant(1.0f);
     }
@@ -112,7 +113,7 @@ remesh(
                  << stats.mMaximumEdgeLength
                  << "), subdividing .." << endl;
             build_dedge(F, V, V2E, E2E, boundary, nonManifold);
-            subdivide(F, V, V2E, E2E, boundary, nonManifold, std::min(scale / 2, (float)stats.mAverageEdgeLength * 2), false);
+            subdivide(F, V, V2E, E2E, boundary, nonManifold, std::min(scale / 2, (float)stats.mAverageEdgeLength * 2), deterministic);
         }
 
         /* Compute a directed edge data structure */
@@ -140,7 +141,7 @@ remesh(
     mRes.setA(std::move(A));
     mRes.setN(std::move(N));
     mRes.setScale(scale);
-    mRes.build(false);
+    mRes.build(deterministic);
     mRes.resetSolution();
 
     if (align_to_boundaries && !pointcloud)
@@ -184,7 +185,7 @@ remesh(
     Optimizer optimizer(mRes, false);
     optimizer.setRoSy(rosy);
     optimizer.setPoSy(posy);
-    optimizer.setExtrinsic(true);
+    optimizer.setExtrinsic(extrinsic);
 
     cout << "Optimizing orientation field .. ";
     cout.flush();
@@ -194,7 +195,7 @@ remesh(
     cout << "done. (took " << timeString(timer.reset()) << ")" << endl;
 
     std::map<uint32_t, uint32_t> sing;
-    compute_orientation_singularities(mRes, sing, true, rosy);
+    compute_orientation_singularities(mRes, sing, extrinsic, rosy);
     cout << "Orientation field has " << sing.size() << " singularities." << endl;
     timer.reset();
 
@@ -214,16 +215,16 @@ remesh(
 
     MatrixXf O_extr, N_extr, Nf_extr;
     std::vector<std::vector<TaggedLink>> adj_extr;
-    extract_graph(mRes, true, rosy, posy, adj_extr, O_extr, N_extr,
-                  crease_in, crease_out, false);
+    extract_graph(mRes, extrinsic, rosy, posy, adj_extr, O_extr, N_extr,
+                  crease_in, crease_out, deterministic);
 
     MatrixXu F_extr;
     extract_faces(adj_extr, O_extr, N_extr, Nf_extr, F_extr, posy,
-                  mRes.scale(), crease_out, true, posy==4, bvh, smooth_iter);
+                  mRes.scale(), crease_out, true, posy == 4, bvh, smooth_iter);
     cout << "Extraction is done. (total time: " << timeString(timer.reset()) << ")" << endl;
 
-    cout << "Faces " << F_extr.cols() << ", " <<  F_extr.rows() << endl;
-    cout << "Verts " << O_extr.cols() << ", "  <<  O_extr.rows() << endl;
+    cout << "Faces " << F_extr.cols() << ", " << F_extr.rows() << endl;
+    cout << "Verts " << O_extr.cols() << ", " << O_extr.rows() << endl;
     // Create new numpy arrays which house the F and V matrices
     const uint32_t num_verts = O_extr.cols();
     const uint32_t num_faces = F_extr.cols();
@@ -242,6 +243,7 @@ NB_MODULE(_pynim, m)
     m.def("remesh", &remesh,
           "verts"_a, "faces"_a, "vertex_count"_a, "rosy"_a = 4, "posy"_a = 4, "scale"_a = -1.0,
           "face_count"_a = -1, "creaseAngle"_a = 0.0,
-          "align_to_boundaries"_a = false, "smooth_iter"_a = 0, "knn_points"_a = 1000,
+          "align_to_boundaries"_a = false, "extrinsic"_a=true,
+          "smooth_iter"_a = 0, "knn_points"_a = 1000, "deterministic"_a = false,
           "Remeshes the input mesh and returns the new mesh as a tuple of vertices and faces.");
 }
