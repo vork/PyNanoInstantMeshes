@@ -1,5 +1,29 @@
 cmake_minimum_required(VERSION 3.15...3.27)
-project(PyNanoInstantMeshes)
+project(PyNanoInstantMeshes LANGUAGES CXX)
+
+# Warn if the user invokes CMake directly
+if (NOT SKBUILD)
+  message(WARNING "\
+  This CMake file is meant to be executed using 'scikit-build-core'.
+  Running it directly will almost certainly not produce the desired
+  result. If you are a user trying to install this package, use the
+  command below, which will install all necessary build dependencies,
+  compile the package in an isolated environment, and then install it.
+  =====================================================================
+   $ pip install .
+  =====================================================================
+  If you are a software developer, and this is your own package, then
+  it is usually much more efficient to install the build dependencies
+  in your environment once and use the following command that avoids
+  a costly creation of a new virtual environment at every compilation:
+  =====================================================================
+   $ pip install nanobind scikit-build-core[pyproject]
+   $ pip install --no-build-isolation -ve .
+  =====================================================================
+  You may optionally add -Ceditable.rebuild=true to auto-rebuild when
+  the package is imported. Otherwise, you need to rerun the above
+  after editing C++ files.")
+endif()
 
 add_compile_options(-std=gnu++17)
 
@@ -9,7 +33,9 @@ else()
   set(DEV_MODULE Development.Module)
 endif()
 
-find_package(Python 3.8 COMPONENTS Interpreter ${DEV_MODULE} REQUIRED)
+find_package(Python 3.8
+  REQUIRED COMPONENTS Interpreter ${DEV_MODULE}
+  OPTIONAL_COMPONENTS Development.SABIModule)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
@@ -41,10 +67,9 @@ include_directories(
 )
 
 # Nanobind Module
-nanobind_add_module(PyNIM NB_STATIC src/process_numpy.cpp)
+nanobind_add_module(_pynim NB_STATIC STABLE_ABI src/process_numpy.cpp)
 
 include_directories(native/im/include)
-target_link_libraries(PyNIM PRIVATE InstantMeshesLib tbb_static pthread dl)
-# # target_compile_features(PyNIM PRIVATE cxx_std_14)
-# set_property(TARGET PyNIM PROPERTY LINKER_LANGUAGE CXX)
-# set_property(TARGET PyNIM PROPERTY CXX_STANDARD 14)
+target_link_libraries(_pynim PRIVATE InstantMeshesLib tbb_static pthread dl)
+
+install(TARGETS _pynim LIBRARY DESTINATION pynim)

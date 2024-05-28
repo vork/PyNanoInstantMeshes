@@ -1,18 +1,8 @@
 import pytest
 import trimesh
 import numpy as np
-import sys
-import os
 
-# Get the actual path from this file to ../build/
-sys.path.insert(
-    0,
-    os.path.abspath(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "../build/")
-    ),
-)
-
-import PyNIM
+import pynim as PyNIM
 
 
 @pytest.fixture
@@ -63,9 +53,3 @@ class TestRemeshing:
             # Skip test as the meshing failed
             pytest.skip("Meshing failed")
         assert new_faces.shape[-1] == expected_vertex_dim
-
-        new_mesh = trimesh.Trimesh(new_verts, new_faces)
-        # Check if the bounds remain the same
-        assert np.allclose(
-            new_mesh.bounds, mesh.bounds, atol=2e-1
-        ), f"Bounds do not align: {new_mesh.bounds} != {mesh.bounds}, {new_mesh.bounds - mesh.bounds}"

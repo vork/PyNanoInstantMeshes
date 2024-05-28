@@ -237,7 +237,7 @@ remesh(
                                F_extr.transpose().data(), 2, shapeb, nb::handle()));
 }
 
-NB_MODULE(PyNIM, m)
+NB_MODULE(_pynim, m)
 {
     m.def("remesh", &remesh,
           "verts"_a, "faces"_a, "vertex_count"_a, "rosy"_a = 4, "posy"_a = 4, "scale"_a = -1.0,
