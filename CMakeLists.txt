@@ -75,6 +75,12 @@ include_directories(
 nanobind_add_module(_pynim NB_STATIC STABLE_ABI src/process_numpy.cpp)
 
 include_directories(native/im/include)
-target_link_libraries(_pynim PRIVATE InstantMeshesLib tbb_static pthread dl)
+
+# Set non-Windows deps in case it's not detected
+if (NOT WIN32)
+    set(PYNIM_LINUX_DEPS pthread dl)
+endif()
+
+target_link_libraries(_pynim PRIVATE InstantMeshesLib tbb_static ${PYNIM_LINUX_DEPS})
 
 install(TARGETS _pynim LIBRARY DESTINATION pynim)
