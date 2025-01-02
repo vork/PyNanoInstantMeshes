@@ -92,4 +92,4 @@ endif()
 
 target_link_libraries(_pynim PRIVATE InstantMeshesLib tbb_static ${PYNIM_LINUX_DEPS})
 
-install(TARGETS _pynim LIBRARY DESTINATION pynim)
+install(TARGETS _pynim LIBRARY DESTINATION pynanoinstantmeshes)

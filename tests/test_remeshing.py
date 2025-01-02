@@ -2,7 +2,7 @@ import pytest
 import trimesh
 import numpy as np
 
-import pynim as PyNIM
+import pynanoinstantmeshes as PyNIM
 
 
 @pytest.fixture
