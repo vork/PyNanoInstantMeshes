@@ -41,6 +41,9 @@ jobs:
         submodules: true
 
     - uses: pypa/cibuildwheel@v2.22
+      env:
+        CIBW_TEST_REQUIRES: pytest trimesh
+        CIBW_TEST_COMMAND: "pytest {project}/tests"
 
     - name: Verify clean directory
       run: git diff --exit-code
