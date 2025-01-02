@@ -16,10 +16,10 @@ classifiers = [
 requires = [
     "scikit-build-core >=0.4.3",
     "nanobind >=2.0.0",
-    "numpy>=1.20.0<2.0.0"
+    "numpy >=1.20.0,<2.0.0",
     # pin setuptools on pypy to workaround this bug: https://github.com/pypa/distutils/issues/283
     "setuptools<72.2.0; platform_python_implementation == 'PyPy'",
-    "setuptools; platform_python_implementation != 'PyPy'",
+    "setuptools; platform_python_implementation != 'PyPy'"
 ]
 build-backend = "scikit_build_core.build"
 
