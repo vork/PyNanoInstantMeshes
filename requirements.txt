@@ -1,2 +1,2 @@
 nanobind
-numpy
+numpy>=1.20.0<2.0.0

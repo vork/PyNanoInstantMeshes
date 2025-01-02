@@ -25,10 +25,13 @@ if (NOT SKBUILD)
   after editing C++ files.")
 endif()
 
+# Ensure proper C++17 flags for different compilers
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
@@ -79,6 +82,12 @@ include_directories(native/im/include)
 # Set non-Windows deps in case it's not detected
 if (NOT WIN32)
     set(PYNIM_LINUX_DEPS pthread dl)
+endif()
+
+# Platform-specific configurations
+if (WIN32)
+  add_definitions(-DWIN32 -D_USE_MATH_DEFINES)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 target_link_libraries(_pynim PRIVATE InstantMeshesLib tbb_static ${PYNIM_LINUX_DEPS})
