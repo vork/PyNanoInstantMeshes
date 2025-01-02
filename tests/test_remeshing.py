@@ -7,8 +7,8 @@ import pynim as PyNIM
 
 @pytest.fixture
 def mesh():
-    # Load assets/monkey.obj
-    yield trimesh.load("assets/torus.obj")
+    # Just use a trimesh primitive (Capsule)
+    yield trimesh.primitives.Capsule(radius=1, height=2).to_mesh()
 
 
 @pytest.mark.parametrize(
