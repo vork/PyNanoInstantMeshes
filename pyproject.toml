@@ -8,7 +8,7 @@ authors = [
     { name = "Mark Boss", email = "hello@markboss.me" },
 ]
 classifiers = [
-    "License :: BSD",
+    "License :: OSI Approved :: BSD License",
 ]
 # Optional: runtime dependency specification
 
